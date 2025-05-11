@@ -1,0 +1,40 @@
+import asyncio
+from multiprocessing import Process, Queue, Manager
+import random
+import time
+import websockets
+from tqdm import tqdm
+
+from streaming_job import StreamingJob
+
+
+def streamer(streamer_id: int, streams_queue: Queue, progress_gueue: Queue, streams_db: dict) -> None:
+    MAX_ITERATIONS = 100
+    print(f'Streamer {streamer_id} started')
+
+    while True:
+        if stream_id := streams_queue.get():
+            print(f'Streaming job {stream_id} started')
+            streams_db[stream_id].status = "running"
+
+            for i in tqdm(range(MAX_ITERATIONS)):
+                time.sleep(1 + random.randint(1, 5))
+                progress_gueue.put({"id": stream_id, "progress": i / MAX_ITERATIONS * 100})
+
+            streams_db[stream_id].status = "finished"
+            print(f'Streaming job {stream_id} finished')
+
+
+def create_streamers(streamer_number: int) -> Process:
+    streams_queue = Queue()
+    progress_gueue = Queue()
+    streams_db = Manager().dict()
+    streamers = []
+
+    for streamer_id in range(streamer_number):
+        streamer_process = Process(target=streamer, args=(streamer_id, streams_queue, progress_gueue, streams_db))
+        streamer_process.start()
+        streamers.append(streamer_process)
+
+    return streamers, streams_queue, progress_gueue, streams_db
+    
