@@ -2,10 +2,9 @@ import { Progress, Text } from "@mantine/core";
 
 export default function StreamingProgressBar({ progress }: { progress: number }) {
 
-  console.log("Progress:", progress);
   return (
     <div style={{ position: "relative", width: "100%" }} key={`{progressMap}`}>
-      <Progress value={progress || 0} size="xl" radius="xl"/>
+      <Progress value={0} size="xl" radius="xl"/>
       {progress !== undefined ? (
         <Text
           style={{
@@ -16,7 +15,7 @@ export default function StreamingProgressBar({ progress }: { progress: number })
             fontWeight: "bold",
           }}
         >
-          {progress > 0 ? `${Math.round(progress)}%` : ""}
+          {`${Math.round(progress)}%`}
         </Text>
       ) : (
         <Text

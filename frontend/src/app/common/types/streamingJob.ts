@@ -1,5 +1,6 @@
 export interface StreamingJob {
-    name: string;
+    stream_name: string;
+    username: string;
     source: string;
     destination: string;
     start: Date;
@@ -7,6 +8,18 @@ export interface StreamingJob {
     speed: number;
     filter: string;
     id: string;
+    progress: number;
+}
+
+export interface StreamingJobRequest {
+    stream_name: string;
+    username: string;
+    source: string;
+    destination: string;
+    start: Date;
+    end: Date;
+    speed: number;
+    filter: string | undefined;
 }
 
 export function jsonToStreamingJob(json: any): StreamingJob {

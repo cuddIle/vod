@@ -8,7 +8,7 @@ import {
     useMantineReactTable,
     type MRT_ColumnDef,
 } from 'mantine-react-table';
-import {StreamingJob} from "@/app/common/types/streamingJob";
+import {StreamingJob, StreamingJobRequest} from "@/app/common/types/streamingJob";
  import { AppShell, Button, Group, Progress } from '@mantine/core';
 import StreamingProgressBar from './streamingProgressBar';
 import { useDisclosure } from '@mantine/hooks';
@@ -16,26 +16,11 @@ import CreateStreamModal from './createStreamModal';
 
 
 
-export default function StreamingJobTable({streamingJobs}: {streamingJobs: StreamingJob[]}) {
+export default function StreamingJobTable({streamingJobs, createStreamingJob}: {streamingJobs: StreamingJob[], createStreamingJob: (streamingJob: StreamingJobRequest) => void}) {
     const [opened, { open, close }] = useDisclosure(false);
-    const [progressMap, setProgressMap] = useState(new Map());
 
-    useEffect(() => {
-      const ws = new WebSocket("ws://localhost:8000/ws");
 
-      ws.onmessage = (event) => {
-          const { id, progress } = JSON.parse(event.data);
-          setProgressMap((prevMap) => {
-              const updatedMap = new Map(prevMap);
-              updatedMap.set(id, progress);
-              return updatedMap;
-          });
-      };
-
-      return () => ws.close();
-  }, []);
-
-  const table = useMantineReactTable({
+    const table = useMantineReactTable({
         // Table data and columns
         data: streamingJobs,
         columns: useMemo<MRT_ColumnDef<StreamingJob>[]>(
@@ -63,17 +48,17 @@ export default function StreamingJobTable({streamingJobs}: {streamingJobs: Strea
                 {
                     header: 'Status',
                     accessorFn: (row) => {
-                        const progress = progressMap.get(row.id);
-                        return <StreamingProgressBar progress={progress}/>;
+                        return <StreamingProgressBar progress={row.progress}/>;
                     }
+                    
                 },
             ],
-            [progressMap]
+            []
         ),
         
         // Toolbar
         renderTopToolbarCustomActions: ({ table }) => (
-            <Group p="md">
+            <Group p="xl">
                 <Button
                     color="green"
                     onClick={open}
@@ -114,11 +99,12 @@ export default function StreamingJobTable({streamingJobs}: {streamingJobs: Strea
             m: "md",
             showRowsPerPage: false,
         },
+
     });
 
     return (<>
         <MantineReactTable table={table}/>
-        <CreateStreamModal opened={opened} close={close} create={(streamingJob: StreamingJob) => console.log(streamingJob)}/>
+        <CreateStreamModal opened={opened} close={close} create={createStreamingJob}/>
     </>)
     
 }

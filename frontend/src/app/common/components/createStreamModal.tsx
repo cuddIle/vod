@@ -3,10 +3,10 @@ import '@mantine/dates/styles.css';
 import { Button, Group, Modal, Slider, TextInput, Text } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { useState } from "react";
-import { StreamingJob } from "../types/streamingJob";
+import { StreamingJob, StreamingJobRequest } from "../types/streamingJob";
 import { DateTimePicker } from "@mantine/dates";
 
-export default function CreateStreamModal({ opened, close, create }: { opened: boolean; close: () => void, create: (streamingJob: StreamingJob) => void }) {
+export default function CreateStreamModal({ opened, close, create }: { opened: boolean; close: () => void, create: (streamingJob: StreamingJobRequest) => void }) {
     const [name, setName] = useState("");
     const [source, setSource] = useState("");
     const [destination, setDestination] = useState("");
@@ -16,15 +16,15 @@ export default function CreateStreamModal({ opened, close, create }: { opened: b
     const [filter, setFilter] = useState("");
     
     const handleSubmit = () => {
-        const newStreamingJob: StreamingJob = {
-            name,
+        const newStreamingJob: StreamingJobRequest = {
+            stream_name: name,
+            username: "user", // TODO: get the username from the context
             source,
             destination,
             start: new Date(start),
             end: new Date(end),
             speed,
             filter,
-            id: Math.random().toString(36).substring(2, 15),
         };
         create(newStreamingJob);
         close();
