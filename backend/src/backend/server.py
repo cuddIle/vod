@@ -1,12 +1,14 @@
 
 
-import asyncio
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from backend.db.streams_dal import StreamDal
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from streamer import create_streamers
-from streaming_job import StreamingJob, StreamingJobRequest, create_stream_job
+from backend.streamer import create_streamers
+from backend.streaming_job import StreamingJobRequest, StreamingJobSelector, create_stream_job
 from uvicorn import run
+
+import os
 
 STREAMERS_NUM = 3
 
@@ -20,6 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+stream_dal = StreamDal(os.getenv("MONGO_URI"))
+
 
 @app.post("/create_new_stream")
 def create_new_stream(stream_job_request: StreamingJobRequest):
@@ -30,10 +34,11 @@ def create_new_stream(stream_job_request: StreamingJobRequest):
         )
 
         stream_job = create_stream_job(stream_job_request)
+        stream_dal.save_stream(stream_job)
+        streams_queue.put(stream_job.id)
+
         print(f"Created stream job: {stream_job.id}")
 
-        stream_db[stream_job.id] = stream_job
-        streams_queue.put(stream_job.id)
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
@@ -42,10 +47,10 @@ def create_new_stream(stream_job_request: StreamingJobRequest):
 @app.post("/get_stream")
 def get_stream(stream_id: str):
     try:
-        if stream_id not in stream_db:
+        if stream_id not in stream_dal.get_all_stream_ids():
             return {"status": "error", "message": "Stream ID not found"}
         
-        return {"status": "success", "message": stream_db[stream_id]}
+        return {"status": "success", "message": stream_dal.get_streams_by_selector(StreamingJobSelector(stream_id=[stream_id]))}
             
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -54,7 +59,7 @@ def get_stream(stream_id: str):
 @app.get("/get_all_streams_ids")
 def get_all_streams_ids():
     try:
-        return {"status": "success", "message": stream_db.keys()}
+        return {"status": "success", "message": stream_dal.get_all_stream_ids()}
             
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -63,12 +68,12 @@ def get_all_streams_ids():
 @app.get("/get_all_streams")
 def new_all_stream():
     try:
-        return {"status": "success", "message": stream_db.values()}
+        return {"status": "success", "message": stream_dal.get_all_streams()}
             
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
-    _, streams_queue, stream_db = create_streamers(STREAMERS_NUM)
+    _, streams_queue = create_streamers(STREAMERS_NUM)
 
     run(app, log_level="info")

@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Backend",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/backend/server.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/config/dev.env"
+    },
+    {
+      "name": "Frontend",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "yarn",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/frontend",
+      "runtimeArgs": ["dev"]
+    },
+    {
+      "name": "Configure mongo",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "db/setup_mongo.py",
+      "console": "integratedTerminal",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/config/dev.env"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Compound",
+      "configurations": ["Backend", "Frontend"]
+    }
+  ]
+}

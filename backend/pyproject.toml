@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = "VOD"
+
+
+[tool.poetry.dependencies]
+python = "^3.11.0"
+fastapi = "*"
+uvicorn = "*"
+tqdm = "*"
+pydantic = "*"
+pymongo = "*"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.15.0"
+ruff = "*"
+
+[tool.ruff]
+line-length = 120
